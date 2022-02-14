@@ -11,13 +11,13 @@ class StatRarityItem:
 
 @dataclass
 class StatRarity:
-  event_ratio: list[StatRarityItem] = field(default_factory=lambda: [
+  event_percentage: list[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON),
     StatRarityItem(20, Rarity.UNCOMMON),
     StatRarityItem(40, Rarity.RARE),
     StatRarityItem(60, Rarity.LEGENDARY),
   ])
-  talent_ratio: list[StatRarityItem] = field(default_factory=lambda: [
+  talent_percentage: list[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON),
     StatRarityItem(30, Rarity.UNCOMMON),
     StatRarityItem(60, Rarity.RARE),
@@ -247,7 +247,6 @@ class Talent:
 
 @dataclass
 class Character:
-  choices: int = 3
   stat_value_weight: dict[int, int] = field(default_factory=lambda: {
     0: 1,
     1: 2,
@@ -268,6 +267,7 @@ class Character:
     4: 2,
     5: 1,
   })
+  choices: int = 3
 
 @dataclass
 class Config:

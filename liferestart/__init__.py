@@ -10,34 +10,60 @@ from .data import AGE, TALENT, ACHIEVEMENT, EVENT
 from .config import Config, TalentBoostItem, StatRarityItem
 from random import Random
 
+class SerializedGeneratedCharacter(TypedDict):
+  name: str
+  talents: list[int]
+  charm: int
+  intelligence: int
+  strength: int
+  money: int
+  seed: int
+
+@dataclass
+class GeneratedCharacter(Character):
+  seed: int
+
+  def serialize(self) -> SerializedGeneratedCharacter:
+    return {
+      "id": -1,
+      "name": self.name,
+      "talents": self.talents,
+      "charm": self.charm,
+      "intelligence": self.intelligence,
+      "strength": self.strength,
+      "money": self.money,
+      "seed": self.seed,
+    }
+
+  @staticmethod
+  def deserialize(serialized: SerializedGeneratedCharacter) -> "GeneratedCharacter":
+    return GeneratedCharacter(
+      -1,
+      name=serialized["name"],
+      talents=serialized["talents"],
+      charm=serialized["charm"],
+      intelligence=serialized["intelligence"],
+      strength=serialized["strength"],
+      money=serialized["money"],
+      seed=serialized["seed"])
+
 class SerializedStatistics(TypedDict):
-  inherited_talent: int
-  finished_games: int
   talents: list[int]
   events: list[int]
   achievements: list[int]
-  unique_seed: int | None
-  unique_name: str
-  unique_talents: list[int]
-  unique_charm: int
-  unique_intelligence: int
-  unique_strength: int
-  unique_money: int
+  finished_games: int
+  inherited_talent: int
+  character: SerializedGeneratedCharacter | None
 
+# 将使用default_factory的field放到最前面，否则和Pydantic协同使用有bug
 @dataclass
 class Statistics:
-  inherited_talent: int = -1
-  finished_games: int = 0
   talents: set[int] = field(default_factory=set)
   events: set[int] = field(default_factory=set)
   achievements: set[int] = field(default_factory=set)
-  unique_seed: int | None = None
-  unique_name: str = ""
-  unique_talents: list[int] = field(default_factory=list)
-  unique_charm: int = 0
-  unique_intelligence: int = 0
-  unique_strength: int = 0
-  unique_money: int = 0
+  finished_games: int = 0
+  inherited_talent: int = -1
+  character: GeneratedCharacter | None = None
 
   def serialize(self) -> SerializedStatistics:
     return {
@@ -46,28 +72,19 @@ class Statistics:
       "talents": list(self.talents),
       "events": list(self.events),
       "achievements": list(self.achievements),
-      "unique_seed": self.unique_seed,
-      "unique_name": self.unique_name,
-      "unique_talents": self.unique_talents,
-      "unique_charm": self.unique_charm,
-      "unique_intelligence": self.unique_intelligence,
-      "unique_strength": self.unique_strength,
-      "unique_money": self.unique_money,
+      "character": self.character.serialize() if self.character else None,
     }
 
-  def deserialize(self, serialized: SerializedStatistics):
-    self.inherited_talent = serialized["inherited_talent"]
-    self.finished_games = serialized["finished_games"]
-    self.talents = set(serialized["talents"])
-    self.events = set(serialized["events"])
-    self.achievements = set(serialized["achievements"])
-    self.unique_seed = serialized["unique_seed"]
-    self.unique_name = serialized["unique_name"]
-    self.unique_talents = serialized["unique_talents"]
-    self.unique_charm = serialized["unique_charm"]
-    self.unique_intelligence = serialized["unique_intelligence"]
-    self.unique_strength = serialized["unique_strength"]
-    self.unique_money = serialized["unique_money"]
+  @staticmethod
+  def deserialize(serialized: SerializedStatistics) -> "Statistics":
+    character = serialized["character"]
+    return Statistics(
+      set(serialized["talents"]),
+      set(serialized["events"]),
+      set(serialized["achievements"]),
+      serialized["finished_games"],
+      serialized["inherited_talent"],
+      GeneratedCharacter.deserialize(character) if character else None)
 
 @dataclass
 class Progress:
@@ -130,9 +147,9 @@ class Game:
   _talent_executed: dict[int, int]
   _condition_vars: dict[str, Any]
 
-  def __init__(self):
-    self.config = Config()
-    self.statistics = Statistics()
+  def __init__(self, config: Config = Config(), statistics: Statistics = Statistics()):
+    self.config = config
+    self.statistics = statistics
     self._random = Random()
     self._talents = []
     self._charm = self._max_charm = self._min_charm = 0
@@ -146,6 +163,7 @@ class Game:
     self._condition_vars = {
       "ATLT": self.statistics.talents,
       "AEVT": self.statistics.events,
+      "TMS": self.statistics.finished_games,
     }
 
   def seed(self, seed: int = None) -> int:
@@ -164,7 +182,7 @@ class Game:
     for i in (i for i in TALENT.values() if not i.exclusive):
       by_rarity[i.rarity].append(i)
     while True:
-      result: list[Talent] = [TALENT[1144], TALENT[1141]]
+      result: list[Talent] = []
       while len(result) < self.config.talent.choices:
         rarities, weights = zip(*((rarity, weight.get(rarity)) for rarity in Rarity if by_rarity[rarity]))
         if not len(rarities):
@@ -355,23 +373,12 @@ class Game:
       self.judge(self._max_spirit, self.config.stat.rarity.spirit),
       self.judge(overall, self.config.stat.rarity.overall))
 
-  def judge(self, value: int, standard: list[StatRarityItem]) -> StatRarityItem:
+  @staticmethod
+  def judge(value: int, standard: list[StatRarityItem]) -> StatRarityItem:
     for i in reversed(standard):
       if value > i.min:
         return i
     return standard[0]
-
-  def get_character(self) -> Character | None:
-    if self.statistics.unique_seed is None:
-      return None
-    return Character(
-      self.statistics.unique_seed,
-      self.statistics.unique_name,
-      self.statistics.unique_talents,
-      self.statistics.unique_charm,
-      self.statistics.unique_intelligence,
-      self.statistics.unique_strength,
-      self.statistics.unique_money)
 
   def create_character(self, seed: int | None, name: str = "独一无二的我"):
     random = Random()
@@ -383,14 +390,7 @@ class Game:
     talents = random.sample([id for id, talent in TALENT.items() if not talent.exclusive], talent_count)
     choices, weights = zip(*self.config.character.stat_value_weight.items())
     charm, intelligence, strength, money = random.choices(choices, weights, k=4)
-    self.statistics.unique_seed = seed
-    self.statistics.unique_name = name
-    self.statistics.unique_talents = talents
-    self.statistics.unique_charm = charm
-    self.statistics.unique_intelligence = intelligence
-    self.statistics.unique_strength = strength
-    self.statistics.unique_money = money
-    return Character(seed, name, talents, charm, intelligence, strength, money)
+    self.statistics.character = GeneratedCharacter(-1, name, talents, charm, intelligence, strength, money, seed)
 
   def set_character(self, character: Character) -> tuple[list[Talent], list[Talent]]:
     talents = [TALENT[id] for id in character.talents]
