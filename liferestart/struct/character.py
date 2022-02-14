@@ -18,8 +18,8 @@ class Character:
       id=int(data["id"]),
       name=data["name"],
       talents=[int(x) for x in data["talent"]],
-      charm=property["CHR"],
-      intelligence=property["INT"],
-      strength=property["STR"],
-      money=property["MNY"],
+      charm=int(property["CHR"]),
+      intelligence=int(property["INT"]),
+      strength=int(property["STR"]),
+      money=int(property["MNY"]),
     )
