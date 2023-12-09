@@ -1,7 +1,9 @@
-from functools import cached_property
-from typing import ClassVar
 from dataclasses import dataclass, field
+from functools import cached_property
+from typing import ClassVar, Dict, List, Tuple
+
 from .struct.commons import Rarity
+
 
 @dataclass
 class StatRarityItem:
@@ -9,21 +11,22 @@ class StatRarityItem:
   rarity: Rarity
   message_id: str = ""
 
+
 @dataclass
 class StatRarity:
-  event_percentage: list[StatRarityItem] = field(default_factory=lambda: [
+  event_percentage: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON),
     StatRarityItem(20, Rarity.UNCOMMON),
     StatRarityItem(40, Rarity.RARE),
     StatRarityItem(60, Rarity.LEGENDARY),
   ])
-  talent_percentage: list[StatRarityItem] = field(default_factory=lambda: [
+  talent_percentage: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON),
     StatRarityItem(30, Rarity.UNCOMMON),
     StatRarityItem(60, Rarity.RARE),
     StatRarityItem(90, Rarity.LEGENDARY),
   ])
-  finished_games: list[StatRarityItem] = field(default_factory=lambda: [
+  finished_games: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "finished_games_0"),
     StatRarityItem(10, Rarity.UNCOMMON, "finished_games_1"),
     StatRarityItem(30, Rarity.UNCOMMON, "finished_games_2"),
@@ -31,7 +34,7 @@ class StatRarity:
     StatRarityItem(70, Rarity.RARE, "finished_games_4"),
     StatRarityItem(100, Rarity.LEGENDARY, "finished_games_5"),
   ])
-  achievements: list[StatRarityItem] = field(default_factory=lambda: [
+  achievements: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "achievements_0"),
     StatRarityItem(10, Rarity.UNCOMMON, "achievements_1"),
     StatRarityItem(30, Rarity.UNCOMMON, "achievements_2"),
@@ -39,7 +42,7 @@ class StatRarity:
     StatRarityItem(70, Rarity.RARE, "achievements_4"),
     StatRarityItem(100, Rarity.LEGENDARY, "achievements_5"),
   ])
-  charm: list[StatRarityItem] = field(default_factory=lambda: [
+  charm: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "common_0"),
     StatRarityItem(1, Rarity.COMMON, "common_1"),
     StatRarityItem(2, Rarity.COMMON, "common_2"),
@@ -48,7 +51,7 @@ class StatRarity:
     StatRarityItem(9, Rarity.RARE, "common_5"),
     StatRarityItem(11, Rarity.LEGENDARY, "common_6"),
   ])
-  money: list[StatRarityItem] = field(default_factory=lambda: [
+  money: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "common_0"),
     StatRarityItem(1, Rarity.COMMON, "common_1"),
     StatRarityItem(2, Rarity.COMMON, "common_2"),
@@ -57,7 +60,7 @@ class StatRarity:
     StatRarityItem(9, Rarity.RARE, "common_5"),
     StatRarityItem(11, Rarity.LEGENDARY, "common_6"),
   ])
-  spirit: list[StatRarityItem] = field(default_factory=lambda: [
+  spirit: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "spirit_0"),
     StatRarityItem(1, Rarity.COMMON, "spirit_1"),
     StatRarityItem(2, Rarity.COMMON, "spirit_2"),
@@ -66,7 +69,7 @@ class StatRarity:
     StatRarityItem(9, Rarity.RARE, "spirit_5"),
     StatRarityItem(11, Rarity.LEGENDARY, "spirit_6"),
   ])
-  intelligence: list[StatRarityItem] = field(default_factory=lambda: [
+  intelligence: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "common_0"),
     StatRarityItem(1, Rarity.COMMON, "common_1"),
     StatRarityItem(2, Rarity.COMMON, "common_2"),
@@ -78,7 +81,7 @@ class StatRarity:
     StatRarityItem(131, Rarity.LEGENDARY, "intelligence_8"),
     StatRarityItem(501, Rarity.LEGENDARY, "intelligence_9"),
   ])
-  strength: list[StatRarityItem] = field(default_factory=lambda: [
+  strength: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "common_0"),
     StatRarityItem(1, Rarity.COMMON, "common_1"),
     StatRarityItem(2, Rarity.COMMON, "common_2"),
@@ -92,7 +95,7 @@ class StatRarity:
     StatRarityItem(1001, Rarity.LEGENDARY, "strength_10"),
     StatRarityItem(2001, Rarity.LEGENDARY, "strength_11"),
   ])
-  age: list[StatRarityItem] = field(default_factory=lambda: [
+  age: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "age_0"),
     StatRarityItem(1, Rarity.COMMON, "age_1"),
     StatRarityItem(10, Rarity.COMMON, "age_2"),
@@ -106,7 +109,7 @@ class StatRarity:
     StatRarityItem(100, Rarity.LEGENDARY, "age_10"),
     StatRarityItem(500, Rarity.LEGENDARY, "age_11"),
   ])
-  overall: list[StatRarityItem] = field(default_factory=lambda: [
+  overall: List[StatRarityItem] = field(default_factory=lambda: [
     StatRarityItem(0, Rarity.COMMON, "common_0"),
     StatRarityItem(41, Rarity.COMMON, "common_1"),
     StatRarityItem(50, Rarity.COMMON, "common_2"),
@@ -116,7 +119,7 @@ class StatRarity:
     StatRarityItem(110, Rarity.LEGENDARY, "common_6"),
     StatRarityItem(120, Rarity.LEGENDARY, "common_7"),
   ])
-  messages: dict[str, str] = field(default_factory=lambda: {
+  messages: Dict[str, str] = field(default_factory=lambda: {
     "common_0": "地狱",
     "common_1": "折磨",
     "common_2": "不佳",
@@ -172,13 +175,15 @@ class StatRarity:
     "achievements_5": "抽到橙色概率六倍",
   })
 
+
 @dataclass
 class Stat:
+  rarity: StatRarity = field(default_factory=StatRarity)
   total: int = 20
   min: int = 0
   max: int = 10
   spirit: int = 5
-  rarity: StatRarity = StatRarity()
+
 
 @dataclass
 class TalentBoostItem:
@@ -190,10 +195,13 @@ class TalentBoostItem:
   legendary: int = 0
 
   def __add__(self, other: "TalentBoostItem") -> "TalentBoostItem":
-    return TalentBoostItem(self.uncommon + other.uncommon, self.rare + other.rare, self.legendary + other.legendary)
+    return TalentBoostItem(
+      self.uncommon + other.uncommon, self.rare + other.rare, self.legendary + other.legendary)
+
 
 TalentBoostItem.ZERO = TalentBoostItem(0, 0, 0)
 TalentBoostItem.ONE = TalentBoostItem(1, 1, 1)
+
 
 @dataclass
 class TalentWeight:
@@ -207,30 +215,32 @@ class TalentWeight:
     return self.total - self.uncommon - self.rare - self.legendary
 
   def get(self, rarity: Rarity):
-    match rarity:
-      case Rarity.COMMON:
-        return self.common
-      case Rarity.UNCOMMON:
-        return self.uncommon
-      case Rarity.RARE:
-        return self.rare
-      case Rarity.LEGENDARY:
-        return self.legendary
+    if rarity == Rarity.COMMON:
+      return self.common
+    if rarity == Rarity.UNCOMMON:
+      return self.uncommon
+    if rarity == Rarity.RARE:
+      return self.rare
+    if rarity == Rarity.LEGENDARY:
+      return self.legendary
     raise ValueError("Invaild rarity")
-  
+
   def __mul__(self, boost: TalentBoostItem) -> "TalentWeight":
-    return TalentWeight(self.total, self.uncommon * boost.uncommon, self.rare * boost.rare, self.legendary * boost.legendary)
+    return TalentWeight(
+      self.total, self.uncommon * boost.uncommon, self.rare * boost.rare,
+      self.legendary * boost.legendary)
+
 
 @dataclass
 class TalentBoost:
-  finished_games: list[tuple[int, TalentBoostItem]] = field(default_factory=lambda: [
+  finished_games: List[Tuple[int, TalentBoostItem]] = field(default_factory=lambda: [
     (10, TalentBoostItem(rare=1)),
     (30, TalentBoostItem(rare=2)),
     (50, TalentBoostItem(rare=3)),
     (70, TalentBoostItem(rare=4)),
     (100, TalentBoostItem(rare=5)),
   ])
-  achievements: list[tuple[int, TalentBoostItem]] = field(default_factory=lambda: [
+  achievements: List[Tuple[int, TalentBoostItem]] = field(default_factory=lambda: [
     (10, TalentBoostItem(legendary=1)),
     (30, TalentBoostItem(legendary=2)),
     (50, TalentBoostItem(legendary=3)),
@@ -238,16 +248,18 @@ class TalentBoost:
     (100, TalentBoostItem(legendary=5)),
   ])
 
+
 @dataclass
 class Talent:
+  weight: TalentWeight = field(default_factory=TalentWeight)
+  boost: TalentBoost = field(default_factory=TalentBoost)
   limit: int = 3
   choices: int = 10
-  weight: TalentWeight = TalentWeight()
-  boost: TalentBoost = TalentBoost()
+
 
 @dataclass
 class Character:
-  stat_value_weight: dict[int, int] = field(default_factory=lambda: {
+  stat_value_weight: Dict[int, int] = field(default_factory=lambda: {
     0: 1,
     1: 2,
     2: 3,
@@ -260,7 +272,7 @@ class Character:
     9: 2,
     10: 1,
   })
-  talent_count_weight: dict[int, int] = field(default_factory=lambda: {
+  talent_count_weight: Dict[int, int] = field(default_factory=lambda: {
     1: 1,
     2: 2,
     3: 3,
@@ -269,8 +281,9 @@ class Character:
   })
   choices: int = 3
 
+
 @dataclass
 class Config:
-  stat: Stat = Stat()
-  talent: Talent = Talent()
-  character: Character = Character()
+  stat: Stat = field(default_factory=Stat)
+  talent: Talent = field(default_factory=Talent)
+  character: Character = field(default_factory=Character)

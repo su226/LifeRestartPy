@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
-from .commons import Rarity
-from ..typing.achievement import AchievementDict
+
 from ..condition import Condition
+from ..typing.achievement import AchievementDict
+from .commons import Rarity
+
 
 class Opportunity(Enum):
   START = 0
@@ -10,7 +12,8 @@ class Opportunity(Enum):
   SUMMARY = 2
   END = 2
 
-@dataclass()
+
+@dataclass
 class Achievement:
   id: int
   name: str

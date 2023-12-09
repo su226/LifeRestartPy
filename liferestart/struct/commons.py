@@ -1,17 +1,24 @@
-from ..typing.commons import WeightsList
 from enum import IntEnum
+from typing import Dict, Iterable, TypedDict, Union
+
 
 class Rarity(IntEnum):
-  COMMON    = 0 # 常见
-  UNCOMMON  = 1 # 稀有
-  RARE      = 2 # 罕见
-  LEGENDARY = 3 # 传说
+  COMMON = 0  # 常见
+  UNCOMMON = 1  # 稀有
+  RARE = 2  # 罕见
+  LEGENDARY = 3  # 传说
 
-Weights = dict[int, float]
-Age = dict[int, Weights]
 
-def parse_weights(items: WeightsList) -> Weights:
-  result = {}
+class EmptyDict(TypedDict):
+  pass
+
+
+Weights = Dict[int, float]
+Age = Dict[int, Weights]
+
+
+def parse_weights(items: Iterable[Union[int, str]]) -> Weights:
+  result: Weights = {}
   for item in items:
     if isinstance(item, str):
       if "*" in item:

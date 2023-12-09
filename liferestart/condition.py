@@ -1,24 +1,30 @@
-from typing import Callable, Sequence, TypeVar
-import re
 import operator
+import re
+from typing import Any, Callable, Dict, List, Sequence, Set, TypeVar, Union, cast
 
-T = TypeVar("T")
-def contains(val: T | set[T], seq: Sequence[T]):
+
+def contains(val: Union[Any, Set[Any]], seq: Sequence[Any]):
   if isinstance(val, set):
     return len(val.intersection(seq)) > 0
   else:
     return val in seq
 
-def not_contains(val: T | set[T], seq: Sequence[T]):
+
+def not_contains(val: Union[Any, Set[Any]], seq: Sequence[Any]):
   if isinstance(val, set):
     return len(val.intersection(seq)) == 0
   else:
     return val not in seq
 
+
+Tree = List[Union[str, "Tree"]]
+
+
 class Condition:
   COMPARISON_RE = re.compile(r"^\s*([A-Za-z]+)\s*(<|<=|==?|>=|>|!=|~=)\s*(-?\d+)\s*$")
-  INCLUDE_RE = re.compile(r"^\s*([A-Za-z]+)\s*([!\?])\s*\[((?:\s*(?:-?\d+)\s*,)*\s*(?:-?\d+))\s*,?\s*\]\s*$")
-  OPERATORS = {
+  INCLUDE_RE = re.compile(
+    r"^\s*([A-Za-z]+)\s*([!\?])\s*\[((?:\s*(?:-?\d+)\s*,)*\s*(?:-?\d+))\s*,?\s*\]\s*$")
+  OPERATORS: Dict[str, Callable[[Any, Any], bool]] = {
     "<": operator.lt,
     "<=": operator.le,
     "=": operator.eq,
@@ -35,13 +41,13 @@ class Condition:
 
   @classmethod
   def parse(cls, data: str) -> "Condition":
-    tree = []
-    level = 0
-    def append(value):
+    def append(value: Union[str, Tree]):
       cur = tree
       for _ in range(level):
         cur = cur[-1]
-      cur.append(value)
+      cast(Tree, cur).append(value)
+    tree: Tree = []
+    level = 0
     for ch in data:
       if ch == '(':
         append([])
@@ -57,9 +63,9 @@ class Condition:
     return cls.build(tree)
 
   @classmethod
-  def build(cls, tree: list) -> "Condition":
+  def build(cls, tree: Tree) -> "Condition":
     while len(tree) == 1:
-      tree = tree[0]
+      tree = cast(Tree, tree[0])
     try:
       index = tree.index("&")
     except ValueError:
@@ -72,21 +78,23 @@ class Condition:
       pass
     else:
       return BoolCondition(cls.build(tree[:index]), operator.or_, cls.build(tree[index + 1:]))
-    exp = "".join(tree)
+    exp = "".join(cast(List[str], tree))
     if include := cls.INCLUDE_RE.match(exp):
-      return VarCondition(include[1], cls.OPERATORS[include[2]], [int(x) for x in include[3].split(",")])
+      return VarCondition(
+        include[1], cls.OPERATORS[include[2]], [int(x) for x in include[3].split(",")])
     elif comparison := cls.COMPARISON_RE.match(exp):
       return VarCondition(comparison[1], cls.OPERATORS[comparison[2]], int(comparison[3]))
     raise ValueError("Unknown condition")
-  
-  def __call__(self, **vars) -> bool:
+
+  def __call__(self, **vars: Any) -> bool:
     raise NotImplementedError
-    
+
   def _pformat(self, indention: str, level: int) -> str:
     return repr(self)
 
   def pformat(self, indention: str = "  ") -> str:
     return self._pformat(indention, 0)
+
 
 class NoopCondition(Condition):
   def __init__(self, value: bool) -> None:
@@ -95,11 +103,13 @@ class NoopCondition(Condition):
   def __repr__(self) -> str:
     return f"NoopCondition({self.value})"
 
-  def __call__(self, **vars) -> bool:
+  def __call__(self, **vars: Any) -> bool:
     return self.value
+
 
 Condition.FALSE = NoopCondition(False)
 Condition.TRUE = NoopCondition(True)
+
 
 class BoolCondition(Condition):
   def __init__(self, left: Condition, operator: Callable[[bool, bool], bool], right: Condition):
@@ -107,12 +117,12 @@ class BoolCondition(Condition):
     self.operator = operator
     self.right = right
 
-  def __call__(self, **vars) -> bool:
+  def __call__(self, **vars: Any) -> bool:
     return self.operator(self.left(**vars), self.right(**vars))
 
   def __repr__(self) -> str:
     return f"BoolCondition({repr(self.left)}, {repr(self.operator)}, {repr(self.right)})"
-    
+
   def _pformat(self, indention: str, level: int) -> str:
     level += 1
     current = indention * level
@@ -121,15 +131,18 @@ class BoolCondition(Condition):
 {current}{repr(self.operator)},
 {current}{self.right._pformat(indention, level)})'''
 
+
 TRight = TypeVar("TRight")
+
+
 class VarCondition(Condition):
   def __init__(self, key: str, operator: Callable[[int, TRight], bool], right: TRight) -> None:
     super().__init__()
     self.key = key
     self.operator = operator
     self.right = right
-  
-  def __call__(self, **vars) -> bool:
+
+  def __call__(self, **vars: Any) -> bool:
     return self.operator(vars[self.key], self.right)
 
   def __repr__(self) -> str:

@@ -64,6 +64,10 @@ def str_width(s: str) -> int:
 def str_pad(s: str, width: int, chr: str = " ") -> str:
   return s + chr * max(width - str_width(s), 0)
 
+def format_float(value: float) -> str:
+  # 处理唯一一个属性有浮点数的角色祖冲之
+  return f"{value:.7f}".rstrip(".0") or "0"
+
 class Format:
   RESET = "\033[0m"
   LIGHT_BLUE = "\033[94m"
@@ -126,7 +130,7 @@ def run(game: Game):
     print("---- 选择角色 ----")
     characters: list[Character] = []
     while True:
-      choices: list[Character] = [game.get_character()]
+      choices: list[Character] = [game.statistics.character]
       for i in range(3):
         if not characters:
           characters = list(CHARACTER.values())
@@ -137,7 +141,7 @@ def run(game: Game):
           print(f"{i}: 独一无二的我 (未创建)")
           continue
         print(f"{i}: {ch.name}")
-        print(f"颜值 {ch.charm} 智力 {ch.intelligence} 体质 {ch.strength} 家境 {ch.money}")
+        print(f"颜值 {format_float(ch.charm)} 智力 {format_float(ch.intelligence)} 体质 {format_float(ch.strength)} 家境 {format_float(ch.money)}")
         for j in ch.talents:
           talent = TALENT[j]
           print(f"- {rarity_color(talent.rarity, str_pad(talent.name, 12))} - {talent.description}")
@@ -260,7 +264,7 @@ def run(game: Game):
 
   for progress in game.progress():
     print("---- 出生 ----" if progress.age == -1 else f"---- {progress.age}岁 ----")
-    print(f"颜值 {progress.charm} 智力 {progress.intelligence} 体质 {progress.strength} 家境 {progress.money} 快乐 {progress.spirit}")
+    print(f"颜值 {format_float(progress.charm)} 智力 {format_float(progress.intelligence)} 体质 {format_float(progress.strength)} 家境 {format_float(progress.money)} 快乐 {progress.spirit}")
     for talent in progress.talents:
       print(rarity_color(talent.rarity, f"天赋 {talent.name} 发动: {talent.description}"))
     for event, has_next in progress.events:
@@ -276,10 +280,10 @@ def run(game: Game):
   print("---- 总结 ----")
   for achievement in end.achievements:
     print(rarity_color(achievement.rarity, f"获得成就 {achievement.name}: {achievement.description}"))
-  print(f"颜值: {end.charm} - {rarity_color(end.summary_charm.rarity, game.config.stat.rarity.messages[end.summary_charm.message_id])}")
-  print(f"智力: {end.intelligence} - {rarity_color(end.summary_intelligence.rarity, game.config.stat.rarity.messages[end.summary_intelligence.message_id])}")
-  print(f"体质: {end.strength} - {rarity_color(end.summary_strength.rarity, game.config.stat.rarity.messages[end.summary_strength.message_id])}")
-  print(f"家境: {end.money} - {rarity_color(end.summary_money.rarity, game.config.stat.rarity.messages[end.summary_money.message_id])}")
+  print(f"颜值: {format_float(end.charm)} - {rarity_color(end.summary_charm.rarity, game.config.stat.rarity.messages[end.summary_charm.message_id])}")
+  print(f"智力: {format_float(end.intelligence)} - {rarity_color(end.summary_intelligence.rarity, game.config.stat.rarity.messages[end.summary_intelligence.message_id])}")
+  print(f"体质: {format_float(end.strength)} - {rarity_color(end.summary_strength.rarity, game.config.stat.rarity.messages[end.summary_strength.message_id])}")
+  print(f"家境: {format_float(end.money)} - {rarity_color(end.summary_money.rarity, game.config.stat.rarity.messages[end.summary_money.message_id])}")
   print(f"快乐: {end.spirit} - {rarity_color(end.summary_spirit.rarity, game.config.stat.rarity.messages[end.summary_spirit.message_id])}")
   print(f"享年: {end.age} - {rarity_color(end.summary_age.rarity, game.config.stat.rarity.messages[end.summary_age.message_id])}")
   print(f"总评: {end.overall} - {rarity_color(end.summary_overall.rarity, game.config.stat.rarity.messages[end.summary_overall.message_id])}")
