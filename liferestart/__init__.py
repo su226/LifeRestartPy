@@ -431,7 +431,7 @@ class Game:
   @staticmethod
   def judge(value: float, standard: List[StatRarityItem]) -> StatRarityItem:
     for i in reversed(standard):
-      if value > i.min:
+      if value >= i.min:
         return i
     return standard[0]
 
