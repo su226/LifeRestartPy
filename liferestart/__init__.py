@@ -272,19 +272,23 @@ class Game:
   def progress(self) -> Generator[Progress, None, None]:
     self._events: Set[int] = set()
     self._condition_vars["EVT"] = self._events
-
-    
+    yield Progress(
+      -1,
+      self._execute_talents(),
+      [],
+      self._check_achievements(Opportunity.START),
+      self._charm,
+      self._intelligence,
+      self._strength,
+      self._money,
+      self._spirit)
     while self._alive:
       self._age += 1
-      if (self._age == 0):
-        opportunity_flag = Opportunity.START
-      else:
-        opportunity_flag = Opportunity.TRAJECTORY
       yield Progress(
         self._age,
         self._execute_talents(),
         self._execute_events(),
-        self._check_achievements(opportunity_flag),
+        self._check_achievements(Opportunity.TRAJECTORY),
         self._charm,
         self._intelligence,
         self._strength,
