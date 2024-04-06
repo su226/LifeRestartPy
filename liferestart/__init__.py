@@ -94,8 +94,8 @@ class Statistics:
 @dataclass
 class Progress:
   age: int
-  talents: List[Talent]
   events: List[Tuple[Event, bool]]
+  talents: List[Talent]
   achievements: List[Achievement]
   charm: float
   intelligence: float
@@ -274,8 +274,8 @@ class Game:
     self._condition_vars["EVT"] = self._events
     yield Progress(
       -1,
-      self._execute_talents(),
       [],
+      self._execute_talents(),
       self._check_achievements(Opportunity.START),
       self._charm,
       self._intelligence,
@@ -284,10 +284,11 @@ class Game:
       self._spirit)
     while self._alive:
       self._age += 1
+      self._update_vars()
       yield Progress(
         self._age,
-        self._execute_talents(),
         self._execute_events(),
+        self._execute_talents(),
         self._check_achievements(Opportunity.TRAJECTORY),
         self._charm,
         self._intelligence,
