@@ -284,6 +284,7 @@ class Game:
       self._spirit)
     while self._alive:
       self._age += 1
+      self._update_vars()
       yield Progress(
         self._age,
         self._execute_talents(),
@@ -431,7 +432,7 @@ class Game:
   @staticmethod
   def judge(value: float, standard: List[StatRarityItem]) -> StatRarityItem:
     for i in reversed(standard):
-      if value > i.min:
+      if value >= i.min:
         return i
     return standard[0]
 
