@@ -1,0 +1,22 @@
+[project]
+name = "liferestart"
+version = "0.1.0"
+description = "人生重开模拟器，Python移植版"
+authors = [
+    {name = "su226", email = "thesu226@outlook.com"},
+]
+dependencies = ["typing-extensions>=4.13.1"]
+requires-python = "~=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.8"
