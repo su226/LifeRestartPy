@@ -69,7 +69,7 @@ class Talent:
       condition=Condition.parse(condition) if condition else Condition.TRUE,
       max_execute=max_execute,
       exclusive=bool(data.get("exclusive", 0)),
-      imcompatible=set(map(int, data.get("exclude", []))),
+      imcompatible={int(x) for x in data.get("exclude", [])},
       replacement=replacement_type,
       weights=replacement_weights,
     )
