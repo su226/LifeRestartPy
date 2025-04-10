@@ -1,38 +1,48 @@
 import operator
 import re
-from typing import Any, Callable, Dict, List, Sequence, Set, TypeVar, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Set, TypeVar, Union, cast
 
 
-def contains(val: Union[Any, Set[Any]], seq: Sequence[Any]):
-  if isinstance(val, set):
-    return len(val.intersection(seq)) > 0
-  else:
-    return val in seq
+def equals(a: Any, b: Any) -> bool:
+  if isinstance(a, set):
+    return b in a
+  return a == b
 
 
-def not_contains(val: Union[Any, Set[Any]], seq: Sequence[Any]):
-  if isinstance(val, set):
-    return len(val.intersection(seq)) == 0
-  else:
-    return val not in seq
+def not_equals(a: Any, b: Any) -> bool:
+  if isinstance(a, set):
+    return b not in a
+  return a != b
+
+
+def contains(val: Any, seq: Set[Any]):
+  if isinstance(val, Iterable):
+    return len(seq.intersection(cast(Iterable[Any], val))) > 0
+  return val in seq
+
+
+def not_contains(val: Any, seq: Set[Any]):
+  if isinstance(val, Iterable):
+    return len(seq.intersection(cast(Iterable[Any], val))) == 0
+  return val not in seq
 
 
 Tree = List[Union[str, "Tree"]]
 
 
 class Condition:
-  COMPARISON_RE = re.compile(r"^\s*([A-Za-z]+)\s*(<|<=|==?|>=|>|!=|~=)\s*(-?\d+)\s*$")
+  COMPARISON_RE = re.compile(r"^\s*([A-Za-z][A-Za-z0-9]*)\s*(<|<=|==?|>=|>|!=|~=)\s*(-?\d+)\s*$")
   INCLUDE_RE = re.compile(
-    r"^\s*([A-Za-z]+)\s*([!\?])\s*\[((?:\s*(?:-?\d+)\s*,)*\s*(?:-?\d+))\s*,?\s*\]\s*$")
+    r"^\s*([A-Za-z][A-Za-z0-9]*)\s*([!\?])\s*\[((?:(?:\s*-?\d+\s*,)*\s*-?\d+(?:\s*,)?)?)\s*\]\s*$")
   OPERATORS: Dict[str, Callable[[Any, Any], bool]] = {
     "<": operator.lt,
     "<=": operator.le,
-    "=": operator.eq,
-    "==": operator.eq,
+    "=": equals,
+    "==": equals,
     ">=": operator.ge,
     ">": operator.gt,
-    "!=": operator.ne,
-    "~=": operator.ne,
+    "!=": not_equals,
+    "~=": not_equals,
     "?": contains,
     "!": not_contains,
   }
@@ -66,22 +76,16 @@ class Condition:
   def build(cls, tree: Tree) -> "Condition":
     while len(tree) == 1:
       tree = cast(Tree, tree[0])
-    try:
-      index = tree.index("&")
-    except ValueError:
-      pass
-    else:
-      return BoolCondition(cls.build(tree[:index]), operator.and_, cls.build(tree[index + 1:]))
-    try:
-      index = tree.index("|")
-    except ValueError:
-      pass
-    else:
-      return BoolCondition(cls.build(tree[:index]), operator.or_, cls.build(tree[index + 1:]))
+    for index, item in enumerate(tree):
+      if item == "&":
+        return BoolCondition(cls.build(tree[:index]), operator.and_, cls.build(tree[index + 1:]))
+      elif item == "|":
+        return BoolCondition(cls.build(tree[:index]), operator.or_, cls.build(tree[index + 1:]))
     exp = "".join(cast(List[str], tree))
     if include := cls.INCLUDE_RE.match(exp):
       return VarCondition(
-        include[1], cls.OPERATORS[include[2]], [int(x) for x in include[3].split(",")])
+        include[1], cls.OPERATORS[include[2]],
+        {int(x) for x in include[3].split(",") if x.strip()})
     elif comparison := cls.COMPARISON_RE.match(exp):
       return VarCondition(comparison[1], cls.OPERATORS[comparison[2]], int(comparison[3]))
     raise ValueError("Unknown condition")
@@ -136,7 +140,7 @@ TRight = TypeVar("TRight")
 
 
 class VarCondition(Condition):
-  def __init__(self, key: str, operator: Callable[[int, TRight], bool], right: TRight) -> None:
+  def __init__(self, key: str, operator: Callable[[Any, TRight], bool], right: TRight) -> None:
     super().__init__()
     self.key = key
     self.operator = operator
