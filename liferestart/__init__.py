@@ -306,7 +306,6 @@ class Game:
         self._add_stats(
           talent.charm, talent.intelligence, talent.strength, talent.money, talent.spirit,
           talent.random)
-        self._update_vars()
         self._talent_executed[talent.id] += 1
         talents.append(talent)
     return talents
@@ -329,7 +328,6 @@ class Game:
       self._age += event.age
       self._add_stats(
         event.charm, event.intelligence, event.strength, event.money, event.spirit, 0)
-      self._update_vars()
       self.statistics.events.add(event.id)
       self._events.add(event.id)
       next_event = None
@@ -358,15 +356,13 @@ class Game:
   ):
     random_values = [0] * 5
     if random:
-      for i in range(5):
-        value = self._random.randint(0, random)
-        random_values[i] = value
-        random -= value
+      random_values[self._random.randint(0, 4)] = random
     self._charm += charm + random_values[0]
     self._intelligence += intelligence + random_values[1]
     self._strength += strength + random_values[2]
     self._money += money + random_values[3]
     self._spirit += spirit + random_values[4]
+    self._update_vars()
 
   def _update_vars(self):
     self._max_age = max(self._age, self._max_age)
