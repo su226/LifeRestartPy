@@ -409,7 +409,7 @@ class Game:
     self._condition_vars["TMS"] = self.statistics.finished_games
     return End(
       self._raw_talents,
-      self._check_achievements(Opportunity.END),
+      self._check_achievements(Opportunity.SUMMARY) + self._check_achievements(Opportunity.END),
       self._max_age,
       self._max_charm,
       self._max_intelligence,
